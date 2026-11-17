@@ -1,6 +1,6 @@
 // Service Worker: שומר את קבצי האפליקציה במטמון כדי שתיפתח גם בלי אינטרנט.
 // בכל שינוי בקבצים צריך להעלות את CACHE_VERSION, אחרת הטלפון ימשיך להציג את הגרסה הישנה.
-const CACHE_VERSION = 'liftrack-v36';
+const CACHE_VERSION = 'liftrack-v37';
 const SHELL = [
   './', './index.html', './privacy.html', './manifest.webmanifest', './css/styles.css',
   './js/main.js', './js/router.js', './js/store.js', './js/dom.js', './js/i18n.js', './js/i18n-en.js', './js/i18n-data.js', './js/config.js', './js/components/body-figure.js', './js/data/body.js', './js/reminders.js', './js/logic/reminders.js',

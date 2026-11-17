@@ -1,8 +1,8 @@
 import { el, mount } from '../dom.js';
-import { getTemplates, getSettings, saveSettings, saveTemplates } from '../store.js';
+import { getTemplates, getSettings, saveSettings, saveTemplates, getWorkouts } from '../store.js';
 import { allExercises } from '../logic/exercises.js';
 import { DAY_NAMES, slotsOf } from '../logic/templates.js';
-import { planWeek, applyPlan, defaultAvailability, windowMinutes, GROUP_NAMES, MIN_PER_WEEK, MAX_PER_WEEK } from '../logic/advisor.js';
+import { planWeek, applyPlan, adviseDay, parseDate, defaultAvailability, windowMinutes, GROUP_NAMES, MIN_PER_WEEK, MAX_PER_WEEK } from '../logic/advisor.js';
 import { segmented } from '../components/segmented.js';
 import { navigate } from '../router.js';
 import { tr, BACK } from '../i18n.js';
@@ -19,6 +19,12 @@ export function advisorScreen() {
     timeOfDay: saved.timeOfDay ?? 'any',
   };
   let plan = null;
+  let mode = 'week'; // 'week' = לוח שבועי קבוע, 'day' = התלבטות על יום ספציפי
+  const pad = (n) => String(n).padStart(2, '0');
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+  const day = { date: todayStr, windows: [{ from: '17:00', to: '21:00' }], energy: 'normal' };
+  let dayResult = null;
   const main = el('main', { class: 'screen screen--no-nav' });
   const persist = () => saveSettings({ advisor: form });
   const topbar = el('div', { class: 'topbar' },
@@ -102,9 +108,9 @@ export function advisorScreen() {
       plan.placements.length ? el('button', { class: 'btn btn--block', type: 'button', onclick: apply }, tr('אשר והחל על התבניות')) : null);
   }
 
-  function render() {
+  function renderWeek() {
     const anyDay = form.avail.some((d) => windowMinutes(d) > 0);
-    mount(main, topbar,
+    mount(main, topbar, modeSwitch(),
       el('p', { class: 'muted fine' }, tr('ספר לי מתי אתה פנוי ומה חשוב לך, ואציע לוח אימונים שבועי. החישוב נעשה בטלפון, ושום מידע לא נשלח.')),
       el('div', { class: 'card sched' },
         el('span', { class: 'sched__title' }, tr('מתי אתה פנוי?')),
@@ -120,6 +126,81 @@ export function advisorScreen() {
       !anyDay ? el('p', { class: 'slot__warn', role: 'status' }, tr('סמן לפחות יום פנוי אחד')) : null,
       resultCard());
   }
+
+  // ───── יום ספציפי: איזה אימון, מתי, או לנוח ─────
+  function modeSwitch() {
+    return segmented({ options: [['week', tr('לוח שבועי')], ['day', tr('יום ספציפי')]], value: mode, cls: 'adv__mode',
+      onChange: (v) => { mode = v; render(); } });
+  }
+
+  const dayReasonText = (r) => {
+    if (r.code === 'recovered') return tr(r.days >= 1 ? 'עברו {n} ימים מאז שעבדת על {groups}: השרירים התאוששו' : 'השרירים ({groups}) התאוששו מספיק', { n: r.days, groups: groupsText(r.groups) });
+    if (r.code === 'fresh') return tr('לא התאמנת לאחרונה על {groups}', { groups: groupsText(r.groups) });
+    if (r.code === 'scheduled') return tr('זה היום שתכננת לאימון הזה');
+    if (r.code === 'missed') return tr('תכננת אותו לאחרונה ולא בוצע');
+    if (r.code === 'short') return tr('אימון קצר יחסית (כ-{m} דקות), מתאים ליום עייף', { m: r.minutes });
+    if (r.code === 'long-tired') return tr('אימון ארוך (כ-{m} דקות), בעייפות כדאי לשקול אימון קצר יותר', { m: r.minutes });
+    if (r.code === 'recovering') return tr('עבדת על {groups} לפני פחות משני ימים (כ-{h} שעות), עדיין מתאושש', { groups: groupsText(r.groups), h: r.hours });
+    return tr('אין חלון פנוי ארוך מספיק (האימון נמשך כ-{m} דקות)', { m: r.minutes });
+  };
+
+  function windowRow(w, i) {
+    return el('div', { class: 'row adv__day', 'data-adv-win': String(i) },
+      el('input', { class: 'field time', type: 'time', value: w.from, 'aria-label': tr('משעה'), onchange: (e) => { w.from = e.target.value; dayResult = null; render(); } }),
+      el('input', { class: 'field time', type: 'time', value: w.to, 'aria-label': tr('עד שעה'), onchange: (e) => { w.to = e.target.value; dayResult = null; render(); } }),
+      day.windows.length > 1 ? el('button', { class: 'icon-btn icon-btn--sm', type: 'button', 'aria-label': tr('הסר חלון'), onclick: () => { day.windows.splice(i, 1); dayResult = null; render(); } }, '✕') : null);
+  }
+
+  function adviseNow() {
+    dayResult = adviseDay({ templates, byId, date: day.date, windows: day.windows, energy: day.energy, timeOfDay: form.timeOfDay, workouts: getWorkouts() });
+    render();
+    main.querySelector('.adv__result')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function dayResultCard() {
+    if (!dayResult) return null;
+    const r = dayResult;
+    const isToday = day.date === todayStr;
+    const header = parseDate(day.date).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+    return el('section', { class: 'adv__result', 'aria-live': 'polite' },
+      el('h2', { class: 'lib__subtitle' }, tr('ההמלצה ל{date}', { date: header })),
+      r.noWindows ? el('div', { class: 'card' }, el('p', { class: 'muted', style: 'margin:0' }, tr('הוסף לפחות חלון פנוי אחד עם שעת סיום אחרי שעת ההתחלה.')))
+      : r.best
+        ? el('div', { class: 'card adv__plan adv__best', 'data-best': r.best.templateId },
+            el('div', { class: 'adv__plantop' }, el('span', { class: 'adv__name' }, r.best.name), el('span', { class: 'tag tag--main' }, r.best.time)),
+            el('ul', { class: 'adv__why' }, [...r.best.reasons.map(dayReasonText), tr('חלון פנוי {from}-{to}, והאימון נמשך כ-{m} דקות', { from: r.best.window.from, to: r.best.window.to, m: r.best.mins })].map((t) => el('li', {}, t))),
+            isToday ? el('a', { class: 'btn btn--block', href: `#/workout?template=${encodeURIComponent(r.best.templateId)}` }, tr('התחל את האימון')) : null)
+        : el('div', { class: 'card adv__plan adv__best', 'data-rest': r.rest },
+            el('span', { class: 'adv__name' }, tr('מומלץ לנוח')),
+            el('p', { class: 'muted', style: 'margin:0' }, r.rest === 'recovering' ? tr('כל התבניות עובדות על שרירים שעדיין מתאוששים. מנוחה היום תעזור להתקדם מחר.') : r.rest === 'nofit' ? tr('אף אחת מהתבניות לא נכנסת בחלונות הפנויים. אפשר להאריך חלון, או להוסיף חלון נוסף.') : tr('אין תבניות לייעץ עליהן.'))),
+      r.alternatives.length ? el('h2', { class: 'lib__subtitle' }, tr('אפשרויות נוספות')) : null,
+      r.alternatives.map((a) => el('div', { class: 'card adv__plan adv__alt', 'data-alt': a.templateId },
+        el('div', { class: 'adv__plantop' }, el('span', { class: 'adv__name' }, a.name),
+          el('span', { class: `tag ${a.status === 'ok' ? 'tag--main' : 'tag--sec'}` }, a.status === 'ok' ? a.time : a.status === 'recovering' ? tr('מתאושש') : tr('לא נכנס'))),
+        el('ul', { class: 'adv__why' }, a.reasons.map((x) => el('li', {}, dayReasonText(x)))))));
+  }
+
+  function renderDay() {
+    mount(main, topbar, modeSwitch(),
+      el('p', { class: 'muted fine' }, tr('התלבטות על יום מסוים או אירוע חד-פעמי? בחר תאריך, סמן מתי אתה פנוי, ואגיד מה כדאי להתאמן ומתי, או אם עדיף לנוח. הלוח השבועי שלך לא ישתנה.')),
+      el('div', { class: 'card sched' },
+        el('span', { class: 'sched__title' }, tr('איזה יום?')),
+        el('input', { class: 'field adv__date', type: 'date', value: day.date, min: todayStr, 'aria-label': tr('תאריך'), onchange: (e) => { if (e.target.value) { day.date = e.target.value; dayResult = null; render(); } } })),
+      el('div', { class: 'card sched' },
+        el('span', { class: 'sched__title' }, tr('מתי אתה פנוי ביום הזה?')),
+        day.windows.map(windowRow),
+        day.windows.length < 3 ? el('button', { class: 'outline-btn', type: 'button', onclick: () => { day.windows.push({ from: '12:00', to: '13:00' }); dayResult = null; render(); } }, tr('הוסף חלון')) : null),
+      el('div', { class: 'card sched' },
+        el('span', { class: 'sched__title' }, tr('איך אתה מרגיש?')),
+        segmented({ options: [['tired', tr('עייף')], ['normal', tr('רגיל')], ['fresh', tr('במיטבי')]], value: day.energy, onChange: (v) => { day.energy = v; dayResult = null; } })),
+      el('div', { class: 'card sched' },
+        el('span', { class: 'sched__title' }, tr('מתי נוח לך להתאמן?')),
+        segmented({ options: [['morning', tr('בתחילת החלון')], ['any', tr('לא משנה')], ['evening', tr('בסוף החלון')]], value: form.timeOfDay, onChange: (v) => { form.timeOfDay = v; dayResult = null; persist(); } })),
+      el('button', { class: 'btn btn--block adv__go', type: 'button', onclick: adviseNow }, tr('מה כדאי לי?')),
+      dayResultCard());
+  }
+
+  function render() { (mode === 'week' ? renderWeek : renderDay)(); }
   render();
   return main;
 }

@@ -194,3 +194,85 @@ export function applyPlan(templates, plan, now = Date.now()) {
     return { ...rest, slots, schedule: changed ? [...schedule, { days, since: now }] : schedule };
   });
 }
+
+// ───────── יועץ ליום ספציפי: התלבטות חד-פעמית ─────────
+
+const RECOVERY_HOURS = 48; // פחות מזה מאז שעבדת על אותה קבוצה: עדיין מתאושש
+const TRAINED_SETS = 3; // לפחות כך וכך סטים בקבוצה באימון כדי שנחשיב שעבדת עליה
+const DAY_MS = 86400000;
+
+/** מתי כל קבוצת שרירים אומנה לאחרונה, לפי היסטוריית האימונים. {group: timestamp} */
+export function lastTrained(workouts, byId) {
+  const last = {};
+  for (const w of workouts ?? []) {
+    if (!w.endedAt) continue;
+    const sets = {};
+    for (const e of w.exercises ?? []) {
+      const done = (e.sets ?? []).filter((s) => s.done).length;
+      for (const m of byId.get(e.exerciseId)?.p ?? []) { const g = GROUP_OF[m]; if (g) sets[g] = (sets[g] ?? 0) + done; }
+    }
+    for (const [g, n] of Object.entries(sets)) if (n >= TRAINED_SETS && (last[g] ?? 0) < w.endedAt) last[g] = w.endedAt;
+  }
+  return last;
+}
+
+/** "YYYY-MM-DD" לתאריך מקומי בחצות. */
+export const parseDate = (s) => { const [y, m, d] = String(s).split('-').map(Number); return new Date(y, m - 1, d); };
+
+/**
+ * ייעוץ ליום אחד: איזה אימון, באיזו שעה, או אם עדיף לנוח.
+ * @param {object} p
+ * @param {string} p.date "YYYY-MM-DD"
+ * @param {Array} p.windows חלונות פנויים באותו יום: [{from, to}]
+ * @param {'normal'|'tired'|'fresh'} p.energy
+ * @param {'morning'|'evening'|'any'} p.timeOfDay
+ * @param {Array} p.workouts היסטוריית אימונים שהסתיימו
+ */
+export function adviseDay({ templates, byId, date, windows, energy = 'normal', timeOfDay = 'any', workouts = [] }) {
+  const day = parseDate(date);
+  const weekday = day.getDay();
+  const valid = (windows ?? []).filter((w) => w.from && w.to && toMin(w.to) > toMin(w.from));
+  const longest = (mins) => valid.filter((w) => toMin(w.to) - toMin(w.from) >= mins + SLACK).sort((a, b) => (toMin(b.to) - toMin(b.from)) - (toMin(a.to) - toMin(a.from)) || toMin(a.from) - toMin(b.from))[0] ?? null;
+  const trained = lastTrained(workouts, byId);
+  const doneByTemplate = {};
+  for (const w of workouts) if (w.endedAt && w.templateId) doneByTemplate[w.templateId] = Math.max(doneByTemplate[w.templateId] ?? 0, w.endedAt);
+
+  const candidates = templates.map((t, order) => {
+    const heavy = heavyGroups(loadOf(t, byId));
+    const mins = sessionMinutes(t);
+    const startRef = day.getTime() + (valid[0] ? toMin(valid[0].from) * 60000 : 12 * 3600000);
+    const hours = heavy.map((g) => (trained[g] ? (startRef - trained[g]) / 3600000 : Infinity));
+    const minHours = hours.length ? Math.min(...hours) : Infinity;
+    const recovering = minHours < RECOVERY_HOURS;
+    const window = longest(mins);
+    const slots = slotsOf2(t);
+    const scheduledToday = slots.includes(weekday);
+    const lastDone = doneByTemplate[t.id];
+    const daysSince = lastDone ? Math.floor((startRef - lastDone) / DAY_MS) : null;
+    const missed = !scheduledToday && slots.some((s) => { const back = (weekday - s + 7) % 7; return back >= 1 && back <= 3 && (!lastDone || lastDone < startRef - back * DAY_MS); });
+    let score = Math.min(minHours === Infinity ? 96 : minHours, 96) / 96 * 40;
+    if (scheduledToday) score += 15;
+    if (missed) score += 10;
+    score += Math.min(daysSince ?? 14, 14);
+    if (energy === 'tired' && mins > 50) score -= 15;
+    if (energy === 'tired' && mins <= 45) score += 5;
+    const status = !window ? 'nofit' : recovering ? 'recovering' : 'ok';
+    const reasons = [];
+    if (status === 'ok') {
+      if (minHours === Infinity) reasons.push({ code: 'fresh', groups: heavy });
+      else reasons.push({ code: 'recovered', days: Math.floor(minHours / 24), groups: heavy });
+      if (scheduledToday) reasons.push({ code: 'scheduled' });
+      else if (missed) reasons.push({ code: 'missed' });
+      if (energy === 'tired' && mins <= 45) reasons.push({ code: 'short', minutes: mins });
+      if (energy === 'tired' && mins > 50) reasons.push({ code: 'long-tired', minutes: mins });
+    } else if (status === 'recovering') reasons.push({ code: 'recovering', hours: Math.round(minHours), groups: heavy });
+    else reasons.push({ code: 'nofit', minutes: mins });
+    return { templateId: t.id, name: t.name, order, mins, status, score, window, time: window ? startTime({ from: window.from, to: window.to }, mins, timeOfDay) : null, reasons };
+  }).sort((a, b) => ((a.status === 'ok' ? 0 : 1) - (b.status === 'ok' ? 0 : 1)) || (b.score - a.score) || (a.order - b.order));
+
+  const best = candidates[0]?.status === 'ok' ? candidates[0] : null;
+  const rest = best ? null : (candidates.some((c) => c.status === 'recovering') ? 'recovering' : candidates.length ? 'nofit' : 'none');
+  return { best, rest, alternatives: candidates.filter((c) => c !== best), noWindows: valid.length === 0 };
+}
+
+const slotsOf2 = (t) => (Array.isArray(t.slots) ? t.slots.map((s) => s.day) : Number.isInteger(t.day) ? [t.day] : []);

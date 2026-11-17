@@ -532,3 +532,7 @@ button.tabs__item[aria-selected="true"] { background: var(--accent); }
 .adv__plantop { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .adv__why { margin: 0; padding-inline-start: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 19px; color: var(--muted); }
 .adv__rest { margin: 0; font-size: 13px; }
+.adv__mode { margin-bottom: 4px; }
+.adv__date { text-align: center; }
+.adv__best { border: 2px solid var(--accent); }
+.adv__alt .adv__name { font-size: 15px; }

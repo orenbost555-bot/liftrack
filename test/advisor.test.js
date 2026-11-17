@@ -125,3 +125,68 @@ test('applyPlan: אותם ימים לא מוסיף רשומה כפולה, ומנ
   assert.equal(out.day, undefined);
   assert.equal(out.slots[0].time, '20:00');
 });
+
+const { adviseDay, lastTrained } = await import('../js/logic/advisor.js');
+const D = '2026-11-18'; // רביעי
+const dayStart = new Date(2026, 10, 18).getTime();
+const done = (templateId, tpl, hoursAgo) => ({ templateId, startedAt: dayStart - hoursAgo * 3600000, endedAt: dayStart - hoursAgo * 3600000 + 3000000,
+  exercises: tpl.items.map((i) => ({ exerciseId: i.exerciseId, sets: Array.from({ length: i.sets }, () => ({ done: true, weight: 50, reps: 10, rir: 2 })) })) });
+const W17 = [{ from: '17:00', to: '21:00' }];
+
+test('lastTrained: קבוצה נחשבת מאומנת רק עם מספיק סטים שהושלמו', () => {
+  const light = { templateId: 'x', endedAt: 5000, startedAt: 1, exercises: [{ exerciseId: 'flat_press', sets: [{ done: true }, { done: false }, { done: false }] }] };
+  assert.deepEqual(lastTrained([light], byId), {});
+  const full = done('c', chest, 30);
+  assert.ok(lastTrained([full], byId).chest);
+});
+
+test('adviseDay: ממליץ על התבנית שהשרירים שלה התאוששו ולא על זו שאומנה אתמול', () => {
+  const workouts = [done('c', chest, 20), done('l', legs, 100)];
+  const r = adviseDay({ templates: [chest, legs], byId, date: D, windows: W17, workouts });
+  assert.equal(r.best.templateId, 'l');
+  assert.equal(r.best.time, '17:00');
+  const c = r.alternatives.find((a) => a.templateId === 'c');
+  assert.equal(c.status, 'recovering');
+});
+
+test('adviseDay: אם הכל מתאושש, ממליץ לנוח', () => {
+  const workouts = [done('c', chest, 10), done('b', back, 12), done('l', legs, 14)];
+  const r = adviseDay({ templates: [chest, back, legs], byId, date: D, windows: W17, workouts });
+  assert.equal(r.best, null);
+  assert.equal(r.rest, 'recovering');
+});
+
+test('adviseDay: חלון קצר מדי נותן nofit, ואין המלצה', () => {
+  const r = adviseDay({ templates: [chest], byId, date: D, windows: [{ from: '17:00', to: '17:20' }], workouts: [] });
+  assert.equal(r.best, null);
+  assert.equal(r.rest, 'nofit');
+  assert.equal(r.alternatives[0].status, 'nofit');
+});
+
+test('adviseDay: בלי חלונות פנויים מדווח', () => {
+  const r = adviseDay({ templates: [chest], byId, date: D, windows: [], workouts: [] });
+  assert.equal(r.noWindows, true);
+  assert.equal(r.best, null);
+});
+
+test('adviseDay: בוחר את החלון הארוך ביותר שמתאים, ושעת ערב מאוחרת', () => {
+  const r = adviseDay({ templates: [chest], byId, date: D, timeOfDay: 'evening', workouts: [],
+    windows: [{ from: '07:00', to: '07:30' }, { from: '18:00', to: '20:00' }, { from: '12:00', to: '13:00' }] });
+  assert.equal(r.best.window.from, '18:00');
+  assert.equal(r.best.time, '19:15'); // 20:00 פחות 40 דקות, מעוגל ל-15
+});
+
+test('adviseDay: יום עייף מעדיף אימון קצר', () => {
+  const long = { id: 'long', name: 'ארוך', items: [...legs.items, ...back.items, ...chest.items] };
+  const short = { id: 'short', name: 'קצר', items: [{ exerciseId: 'bicep_curl', sets: 3 }, { exerciseId: 'pushdown', sets: 3 }] };
+  const r = adviseDay({ templates: [long, short], byId, date: D, windows: [{ from: '17:00', to: '21:00' }], energy: 'tired', workouts: [] });
+  assert.equal(r.best.templateId, 'short');
+  assert.ok(r.best.reasons.some((x) => x.code === 'short'));
+});
+
+test('adviseDay: תבנית שמתוכננת ליום הזה מקבלת עדיפות', () => {
+  const a = { ...chest, slots: [{ day: 3, time: '18:00' }] }; // רביעי = 3
+  const r = adviseDay({ templates: [legs, a], byId, date: D, windows: W17, workouts: [] });
+  assert.equal(r.best.templateId, 'c');
+  assert.ok(r.best.reasons.some((x) => x.code === 'scheduled'));
+});
