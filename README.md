@@ -2,7 +2,7 @@
 
 # LIFTRACK
 
-**A personal strength-training tracker that tells you the truth about your progress.**
+**A strength-training tracker that keeps you motivated and shows your progress, workout after workout.**
 Installable PWA · offline-first · no accounts · your data never leaves your phone.
 
 Hebrew (RTL) and English UI · vanilla JavaScript, zero runtime dependencies
