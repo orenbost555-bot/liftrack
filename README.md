@@ -15,7 +15,7 @@ Hebrew (RTL) and English UI · vanilla JavaScript, zero runtime dependencies
 
 During intense stretches at work or university, exercise is one of the best things you can do for your day: it lifts your mood and your motivation to keep working and learning. But fitting a workout into a packed schedule is a real challenge.
 
-LIFTRACK is my answer. It is a workout tracker built around motivation and consistency: set goals, keep your streak alive, build your own training plans, get reminders before each session, and see your progress from one workout to the next.
+That is why I built LIFTRACK, a workout tracker that helps you stay consistent: set goals, keep your streak alive, build your own training plans, get reminders before each session, and see your progress from one workout to the next.
 
 ## Features
 
