@@ -140,7 +140,8 @@ export function settingsScreen() {
                 el('button', { class: 'outline-btn', onclick: () => { confirm = null; render(); } }, tr('ביטול'))))
           : el('button', { class: 'link-danger', onclick: () => { confirm = 'reset'; render(); } }, tr('מחק את כל הנתונים'))),
 
-      el('p', { class: 'muted prefs__note', style: 'text-align:center' }, 'LIFTRACK'));
+      el('p', { class: 'muted prefs__note', style: 'text-align:center' },
+        el('a', { href: `privacy.html?lang=${getLang()}`, target: '_blank', rel: 'noopener' }, tr('מדיניות פרטיות')), ' · LIFTRACK'));
   }
   render();
   refreshReminders();

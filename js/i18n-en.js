@@ -123,7 +123,7 @@ export const EN = {
   'לילה טוב': 'Good night', 'ללא': 'None', 'ללא שיפור': 'No improvement', 'לעומת האימון הקודם ({v})': 'Compared to the previous workout ({v})',
   'לתבניות שלי': 'To my templates', 'מגמת שיפור': 'Improvement trend', 'מה מתאמנים היום?': 'What are we training today?', 'מוכן לאימון הראשון?': 'Ready for your first workout?',
   'מועד יעד': 'Deadline', 'מחושב מ-{n} תרגילים': 'Calculated from {n} exercise|Calculated from {n} exercises',
-  'מחק אימון': 'Delete workout', 'מחק את כל הנתונים': 'Delete all data', 'מחק יעד': 'Delete goal', 'מחק תבנית': 'Delete template', 'מין': 'Gender',
+  'מחק אימון': 'Delete workout', 'מחק את כל הנתונים': 'Delete all data', 'מדיניות פרטיות': 'Privacy policy', 'מחק יעד': 'Delete goal', 'מחק תבנית': 'Delete template', 'מין': 'Gender',
   'מכאן בונים. בפעם הבאה שוברים אותו.': 'Build from here. Next time, break it.',
   'מנוחה': 'Rest', 'מעט נתונים': 'Little data', 'מצב נוכחי': 'Current status',
   'מרכיבים פעם אחת ומתחילים בלחיצה': 'Build once, start with a tap', 'מרכיבים תבנית מהספרייה ומתחילים.': 'Build a template from the library and start.',

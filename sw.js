@@ -1,8 +1,8 @@
 // Service Worker: שומר את קבצי האפליקציה במטמון כדי שתיפתח גם בלי אינטרנט.
 // בכל שינוי בקבצים צריך להעלות את CACHE_VERSION, אחרת הטלפון ימשיך להציג את הגרסה הישנה.
-const CACHE_VERSION = 'liftrack-v33';
+const CACHE_VERSION = 'liftrack-v34';
 const SHELL = [
-  './', './index.html', './manifest.webmanifest', './css/styles.css',
+  './', './index.html', './privacy.html', './manifest.webmanifest', './css/styles.css',
   './js/main.js', './js/router.js', './js/store.js', './js/dom.js', './js/i18n.js', './js/i18n-en.js', './js/i18n-data.js', './js/config.js', './js/components/body-figure.js', './js/data/body.js', './js/reminders.js', './js/logic/reminders.js',
   './js/logic/greeting.js', './js/logic/exercises.js', './js/logic/templates.js', './js/logic/workout.js', './js/logic/progress.js', './js/logic/goals.js', './js/logic/backup.js', './js/logic/swap.js', './js/logic/home.js', './js/logic/summary.js', './js/data/quotes.js',
   './js/data/exercises.js', './js/data/muscles.js',
@@ -28,7 +28,7 @@ self.addEventListener('activate', (e) => {
 // cache-first: קודם מהמטמון, ואם אין, מהרשת.
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(caches.match(e.request).then((hit) => hit || fetch(e.request)));
+  e.respondWith(caches.match(e.request, { ignoreSearch: true }).then((hit) => hit || fetch(e.request)));
 });
 
 // תזכורות אימון (Web Push). ההצפנה והשליחה נעשות בשרת התזכורות; כאן רק מציגים את ההתראה.
