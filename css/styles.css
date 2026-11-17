@@ -517,3 +517,18 @@ button.tabs__item[aria-selected="true"] { background: var(--accent); }
 .prefs .row--stack .segmented--6 .segmented__item { padding-inline: 4px; }
 .sum__edit { display: flex; align-items: center; justify-content: center; text-decoration: none; width: 100%; }
 .savebar .wk__hint { color: #C0262D; font-weight: 600; font-size: 13px; }
+
+/* יועץ תזמון */
+.adv__day { flex-wrap: nowrap; gap: 8px; }
+.adv__day .chip-btn { width: 74px; padding: 0; flex: none; }
+.adv__day .time { flex: 1 1 0; min-width: 0; padding-inline: 6px; font-size: 14px; }
+.adv__off { font-size: 13px; }
+.adv__tpl { display: flex; flex-direction: column; gap: 10px; }
+.adv__name { font-size: 16px; font-weight: 700; }
+.adv__prio { height: 36px; font-size: 13px; padding: 0 12px; }
+.adv__go { margin-top: 4px; }
+.adv__result { display: flex; flex-direction: column; gap: 10px; }
+.adv__plan { display: flex; flex-direction: column; gap: 8px; }
+.adv__plantop { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.adv__why { margin: 0; padding-inline-start: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 19px; color: var(--muted); }
+.adv__rest { margin: 0; font-size: 13px; }

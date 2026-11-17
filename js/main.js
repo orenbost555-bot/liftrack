@@ -13,6 +13,7 @@ import { progressScreen } from './screens/progress.js';
 import { muscleScreen } from './screens/muscle.js';
 import { goalsScreen } from './screens/goals.js';
 import { settingsScreen } from './screens/settings.js';
+import { advisorScreen } from './screens/advisor.js';
 import { swapScreen } from './screens/swap.js';
 import { exerciseEditorScreen } from './screens/exercise-editor.js';
 import { editWorkoutScreen } from './screens/edit-workout.js';
@@ -36,6 +37,7 @@ const routes = {
   '/swap': { render: swapScreen },
   '/exercise': { render: exerciseEditorScreen },
   '/edit-workout': { render: editWorkoutScreen },
+  '/advisor': { render: advisorScreen },
 };
 
 // שומר: בלי פרופיל מפנים לפתיחה, ועם פרופיל לא חוזרים אליה.

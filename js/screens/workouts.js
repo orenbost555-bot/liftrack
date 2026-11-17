@@ -41,5 +41,6 @@ export function workoutsScreen() {
           el('p', { style: 'margin:0 0 4px;font-size:16px;font-weight:700' }, tr('עוד אין תבניות')),
           el('p', { class: 'muted', style: 'margin:0;font-size:14px' }, tr('בחר תרגילים מהספרייה, קבע כמה סטים, ושמור. מכאן אפשר להתחיל אימון בלחיצה.')))
       : templates.map(templateCard),
-    el('a', { class: 'dashed', href: '#/template' }, svg(PLUS), el('span', {}, tr('תבנית חדשה'))));
+    el('a', { class: 'dashed', href: '#/template' }, svg(PLUS), el('span', {}, tr('תבנית חדשה'))),
+    templates.length ? el('a', { class: 'dashed adv__link', href: '#/advisor' }, el('span', {}, tr('יועץ תזמון: עזרה בבחירת ימים ושעות'))) : null);
 }

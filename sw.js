@@ -1,6 +1,6 @@
 // Service Worker: שומר את קבצי האפליקציה במטמון כדי שתיפתח גם בלי אינטרנט.
 // בכל שינוי בקבצים צריך להעלות את CACHE_VERSION, אחרת הטלפון ימשיך להציג את הגרסה הישנה.
-const CACHE_VERSION = 'liftrack-v35';
+const CACHE_VERSION = 'liftrack-v36';
 const SHELL = [
   './', './index.html', './privacy.html', './manifest.webmanifest', './css/styles.css',
   './js/main.js', './js/router.js', './js/store.js', './js/dom.js', './js/i18n.js', './js/i18n-en.js', './js/i18n-data.js', './js/config.js', './js/components/body-figure.js', './js/data/body.js', './js/reminders.js', './js/logic/reminders.js',
@@ -8,7 +8,7 @@ const SHELL = [
   './js/data/exercises.js', './js/data/muscles.js',
   './js/components/nav.js', './js/components/segmented.js',
   './js/screens/onboarding.js', './js/screens/home.js', './js/screens/workouts.js', './js/screens/library.js', './js/screens/history.js', './js/screens/workout.js', './js/screens/summary.js', './js/screens/progress.js', './js/screens/muscle.js', './js/screens/goals.js', './js/screens/settings.js', './js/screens/swap.js',
-  './js/screens/exercise-editor.js', './js/screens/edit-workout.js',
+  './js/screens/exercise-editor.js', './js/screens/advisor.js', './js/logic/advisor.js', './js/screens/edit-workout.js',
   './js/logic/custom-exercise.js', './js/logic/idle-nudge.js', './js/components/tools.js', './js/screens/template-editor.js',
   './js/components/workouts-header.js', './js/components/exercise-browser.js', './js/components/line-chart.js',
 ];

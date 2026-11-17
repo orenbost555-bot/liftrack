@@ -23,6 +23,7 @@ That is why I built LIFTRACK, a workout tracker that helps you stay consistent: 
 - **Real progression logic.** Each set is compared with the previous session. Failed to reach the target RIR? The app suggests raising weight or reps. Stagnation (5+ sessions or 60+ days without improvement) is detected per exercise.
 - **Progress views.** Per-exercise charts with an improvement/no-improvement marker per point, personal records, percent change, per-muscle charts and a body-map showing primary and secondary muscles.
 - **Goals.** Set a target weight and date; see percent complete and weeks left.
+- **Schedule advisor.** Tell it when you are free (days and time windows) and which workouts matter most; it suggests a weekly plan that spaces out workouts hitting the same muscles, fits each session into your free window, and explains every choice. Runs fully on the device, no AI service or network needed.
 - **Flexible schedule.** Several days per template, with a different time for each day. Same-day clashes are flagged. Streaks count scheduled workouts.
 - **Reminders without a backend account.** Web Push reminders ("N hours before" / "evening before") plus an optional idle nudge that brings you back if you stop logging mid-workout.
 - **Edit history.** Correct any past workout: reps, weight, RIR, add or remove sets and exercises.
