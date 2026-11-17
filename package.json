@@ -1,0 +1,12 @@
+{
+  "name": "liftrack",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "LIFTRACK: a personal strength-training PWA (vanilla JS, offline-first, no accounts)",
+  "license": "MIT",
+  "scripts": {
+    "start": "npx --yes serve .",
+    "test": "node --test"
+  }
+}
