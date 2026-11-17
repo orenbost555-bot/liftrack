@@ -5,7 +5,7 @@
 **A personal strength-training tracker that tells you the truth about your progress.**
 Installable PWA · offline-first · no accounts · your data never leaves your phone.
 
-Hebrew (RTL) and English · vanilla JavaScript, zero runtime dependencies
+Hebrew (RTL) and English UI · vanilla JavaScript, zero runtime dependencies
 
 <img src="docs/screenshots/01-home.png" width="190"> <img src="docs/screenshots/07-workout.png" width="190"> <img src="docs/screenshots/04-progress.png" width="190"> <img src="docs/screenshots/08-summary.png" width="190">
 
@@ -85,16 +85,6 @@ Bump `CACHE_VERSION` in `sw.js` on every release.
 Vanilla JavaScript (ES modules) · CSS · Service Worker · Web Push · WebCrypto · Cloudflare Workers + KV · `node:test` · Playwright for end-to-end checks.
 
 ---
-
-## עברית
-
-**LIFTRACK** היא אפליקציית אימוני כוח אישית (PWA) שעונה על שאלה אחת: *האם אני באמת מתחזק?*
-היא עוקבת אחרי משקל, חזרות ו-RIR לכל סט, מזהה שיפור אמיתי, מתריעה על קיפאון ומציעה מה לנסות באימון הבא.
-עובדת גם ללא אינטרנט, בלי חשבון משתמש, והנתונים נשמרים רק בטלפון שלך. הממשק בעברית (RTL) ובאנגלית.
-
-תכונות עיקריות: תבניות אימון עם כמה ימים ושעה לכל יום, תזכורות Push, עריכת אימונים מהעבר, תרגילים מותאמים אישית, יעדים, גרפי התקדמות ומפת שרירים, וגיבוי לקובץ.
-
-הרצה: `npm start`, בדיקות: `npm test`.
 
 ## License
 
