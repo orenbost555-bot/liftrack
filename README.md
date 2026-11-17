@@ -13,8 +13,9 @@ Hebrew (RTL) and English · vanilla JavaScript, zero runtime dependencies
 
 ## Why I built it
 
-Most workout apps log what you did. I wanted one that answers a harder question: **am I actually getting stronger?**
-LIFTRACK tracks weight, reps and RIR per set, decides what counts as a real improvement, flags stagnation, and tells you what to try next session.
+During intense stretches at work or university, exercise is one of the best things you can do for your day: it lifts your mood and your motivation to keep working and learning. But fitting a workout into a packed schedule is a real challenge.
+
+LIFTRACK is my answer. It is a workout tracker built around motivation and consistency: set goals, keep your streak alive, build your own training plans, get reminders before each session, and see your progress from one workout to the next.
 
 ## Features
 
